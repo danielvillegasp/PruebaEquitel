@@ -25,17 +25,17 @@ public class ContarReDesdeArchivo
         pool = rPool;
     }
     
-    // Cuenta el numero de ocurrencias de la expresión regular y escribe la respuesta en la linea de comandos y en un archivo de texto
+    // Cuenta el numero de ocurrencias de la expresión regular y escribe la respuesta en la linea de comandos y en un archivo de texto.
     public void contar()
     {
         if(File.Exists(nombreArchivoLectura))
         {
-            int cnt = 0;
-            // La lectura del archivo es Thread Safe
+            var cnt = 0;
+            // La lectura del archivo es Thread Safe.
             string texto = File.ReadAllText(nombreArchivoLectura);
-            // Cuenta del numero de ocurrencias
+            // Cuenta del numero de ocurrencias.
             cnt = Regex.Matches(texto, reCoincidencia).Count;
-            // Inicia espera para que se desocupe el recurso compartido (Archivo de texto de destino)
+            // Inicia espera para que se desocupe el recurso compartido (Archivo de texto de destino).
             pool.WaitOne();
             if(!File.Exists(nombreArchivoDestino))
             {
@@ -53,14 +53,14 @@ public class ContarReDesdeArchivo
                     file.WriteLine("{0}{1:D}", mensaje, cnt);
                 }
             }
-            // Escribe en la terminal el mensaje que se escribió en el archívo de texto de destíno
+            // Escribe en la terminal el mensaje que se escribió en el archívo de texto de destíno.
             Console.WriteLine("{0}{1:D}", mensaje, cnt);
-            // Informa que se dejó de usar el recurso compartido (Archivo de texto)
+            // Informa que se dejó de usar el recurso compartido (Archivo de texto).
             pool.Release();
         }
         else
         {
-            // Si el archivo de lectura no existe, muestra en la terminal el siguiente texto
+            // Si el archivo de lectura no existe, muestra en la terminal el siguiente texto.
             Console.WriteLine("No se encuentra el archivo {0}.", nombreArchivoLectura);
         }
     }
@@ -68,30 +68,31 @@ public class ContarReDesdeArchivo
 
 public class Programa
 {
-    
     public static int Main(string[] args)
     {
         if(args.Contains("-h"))
         {
-            // Argumento de ayuda para información de uso
-            Console.WriteLine("Si no se usan argumentos se asume que el archivo de");
-            Console.WriteLine("texto se llama ./texto.txt y el archivo de salida");
-            Console.WriteLine("./resultado.txt, si se especifícan los nombres, el");
-            Console.WriteLine("primero equivale al archvivo que se lee y el segundo al");
-            Console.WriteLine("archivo de salida.");
+            // Argumento de ayuda para información de uso.
+            var instrucciones = new StringBuilder();
+            instrucciones.Append("\nSi no se usan argumentos se asume que el archivo de\n");
+            instrucciones.Append("texto se llama ./texto.txt y el archivo de salida\n");
+            instrucciones.Append("./resultado.txt, si se especifícan los nombres, el\n");
+            instrucciones.Append("primero equivale al archvivo que se lee y el segundo al\n");
+            instrucciones.Append("archivo de salida.\n");
+            Console.Write(instrucciones);
             return 0;
         }
-        // Inicialización nombre archivo de texto para lectura y nombre de archivo de destíno
-        string nombreArchivo=@"./texto.txt";
-        string nombreArchivoDestino=@"./resultado.txt";
+        // Inicialización nombre archivo de texto para lectura y nombre de archivo de destíno.
+        var nombreArchivo=@"./texto.txt";
+        var nombreArchivoDestino=@"./resultado.txt";
         if(args.Length == 1)
         {
-            // Argumento de nombre de archivo de texto
+            // Argumento de nombre de archivo de texto.
             nombreArchivo = args[0];
         }
         else if(args.Length==2)
         {
-            // Argumento de nombre de archivo de salida
+            // Argumento de nombre de archivo de salida.
             nombreArchivo = args[0];
             nombreArchivoDestino = args[1];
         }
@@ -102,30 +103,30 @@ public class Programa
             \.\r : Busca puntos seguidos por un "carriage return" (punto y aparte), esto equivale al numero de parrafos.
             [^nN \p{P}] : coincide con cualquier caracter excepto n N, espacio y signos de puntuacion.
         */
-        string[,] reStr = new string[,]{{@"\b\w+n\b", "El numero de palabras que terminan en N o n es: "},
-                                        {@"(([\-_\('’""]*\b\w+\b[ \),:;\-_'’""]*){16,})\.[ ]", "El numero de frases con mas de 15 palabras es: "},
-                                        {@"\.\r", "El numero parrafos es: "},
-                                        {@"[^nN\s\p{P}]", "El numero de caracteres alfanumericos diferentes a n y N es: "}};
+        string[,] reStr = {{@"\b\w+n\b", "El numero de palabras que terminan en N o n es: "},
+                           {@"(([\-_\('’""]*\b\w+\b[ \),:;\-_'’""]*){16,})\.[ ]", "El numero de frases con mas de 15 palabras es: "},
+                           {@"\.\r", "El numero parrafos es: "},
+                           {@"[^nN\s\p{P}]", "El numero de caracteres alfanumericos diferentes a n y N es: "}};
         int nOps = reStr.GetLength(0);
         Thread[] threadArray = new Thread[nOps];
         // Se inicializa el semaforo desocupado para una petición concurrente.
         Semaphore sPool = new Semaphore(1, 1);
-        for(int i=0; i<nOps; i++)
+        for(var i=0; i<nOps; i++)
         {
-            // Inicialización objeto para contar ocurrencias de expresiones regulares
+            // Inicialización objeto para contar ocurrencias de expresiones regulares.
             ContarReDesdeArchivo oCnt = new ContarReDesdeArchivo(nombreArchivo, nombreArchivoDestino, reStr[i, 0], reStr[i, 1], ref sPool);
-            // Creación del thread que correrá el metodo oCnt.contar
+            // Creación del thread que correrá el metodo oCnt.contar.
             threadArray[i] = new Thread(new ThreadStart(oCnt.contar));
         }
-        for(int i=0; i<nOps; i++)
+        for(var i=0; i<nOps; i++)
         {
-            // Inicio de los threads
+            // Inicio de los threads.
             threadArray[i].Start();
             while(!threadArray[i].IsAlive);
         }
-        for(int i=0; i<nOps; i++)
+        for(var i=0; i<nOps; i++)
         {
-            // Finalización de los thread
+            // Finalización de los thread.
             threadArray[i].Join();
         }
         return 0;
