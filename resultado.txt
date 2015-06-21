@@ -1,0 +1,4 @@
+El numero parrafos es: 35
+El numero de palabras que terminan en N o n es: 228
+El numero de caracteres alfanumericos diferentes a n y N es: 8352
+El numero de frases con mas de 15 palabras es: 16
